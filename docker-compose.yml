@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/trimly
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  owner-dashboard:
+    build:
+      context: .
+      dockerfile: apps/owner-dashboard/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/v1
+
+  customer-web:
+    build:
+      context: .
+      dockerfile: apps/customer-web/Dockerfile
+    ports:
+      - "3005:3005"
+
+  admin-panel:
+    build:
+      context: .
+      dockerfile: apps/admin-panel/Dockerfile
+    ports:
+      - "3008:3008"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: trimly
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
